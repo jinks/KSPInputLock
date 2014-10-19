@@ -14,6 +14,7 @@ namespace KSPInputLock {
         private bool lockState = false;
 
         private KeyBinding rememberThrottleCutoffKey;
+        private KeyBinding rememberThrottleFullKey;
 
         private void Lock() {
             if (lockState) return;
@@ -29,6 +30,8 @@ namespace KSPInputLock {
             // and https://github.com/KSP-KOS/KOS/blob/master/src/Screen/TermWindow.cs
             rememberThrottleCutoffKey = GameSettings.THROTTLE_CUTOFF;
             GameSettings.THROTTLE_CUTOFF = new KeyBinding(KeyCode.None);
+            rememberThrottleFullKey = GameSettings.THROTTLE_FULL;
+            GameSettings.THROTTLE_FULL = new KeyBinding(KeyCode.None);
         }
 
         private void Unlock() {
@@ -41,6 +44,8 @@ namespace KSPInputLock {
 
             if (rememberThrottleCutoffKey != null)
                 GameSettings.THROTTLE_CUTOFF = rememberThrottleCutoffKey;
+            if (rememberThrottleFullKey != null)
+                GameSettings.THROTTLE_FULL = rememberThrottleFullKey;
         }
 
         public void Start() {

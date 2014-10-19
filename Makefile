@@ -1,5 +1,5 @@
 APP			:= KSPInputLock
-VERSION		:= 0.1.0
+VERSION		:= 0.2.0
 
 KSPDIR		:= /mnt/games/Steam/SteamApps/common/Kerbal\ Space\ Program
 MANAGED		:= ${KSPDIR}/KSP_Data/Managed
@@ -40,6 +40,6 @@ install: all
 
 zip: all
 	rm -f ${APP}_${VERSION}.zip
-	${ZIP} -r ${APP}_${VERSION}.zip GameData README.md LICENSE -x \*.keep
+	${ZIP} -r ${APP}_${VERSION}.zip GameData README.md LICENSE.md -x \*.keep
 
 .PHONY: all clean install zip
