@@ -10,22 +10,37 @@ namespace KSPInputLock {
     public class KSPInputLock : MonoBehaviour {
 
         private IButton lockButton;
+        private CameraManager cameraManager;
         private bool lockState = false;
 
-        private void toggleState() {
-            if (lockState) {
-                lockState = false;
-                if (InputLockManager.GetControlLock("KSPInputLock") == ControlTypes.All)
-                    InputLockManager.RemoveControlLock("KSPInputLock");
-                lockButton.ToolTip = "Lock ship controls";
-                lockButton.TexturePath = "KSPInputLock/Icons/unlocked";
-            } else {
-                lockState = true;
-                if (InputLockManager.GetControlLock("KSPInputLock") != ControlTypes.All)
-                    InputLockManager.SetControlLock(ControlTypes.All, "KSPInputLock");
-                lockButton.ToolTip = "Unlock ship controls";
-                lockButton.TexturePath = "KSPInputLock/Icons/locked";
-            }
+        private KeyBinding rememberThrottleCutoffKey;
+
+        private void Lock() {
+            if (lockState) return;
+
+            lockState = true;
+            cameraManager = CameraManager.Instance;
+            cameraManager.enabled = false;
+            InputLockManager.SetControlLock("KSPInputLock");
+
+            // Some keys don't get locked by the LockManager :(
+            // Fix stolen from kOS, thanks to Steven Mading for finding this out.
+            // See http://forum.kerbalspaceprogram.com/threads/95378-HELP%21-Why-won-t-InputLockManager-lock-out-the-X-key?p=1452787&viewfull=1#post1452787
+            // and https://github.com/KSP-KOS/KOS/blob/master/src/Screen/TermWindow.cs
+            rememberThrottleCutoffKey = GameSettings.THROTTLE_CUTOFF;
+            GameSettings.THROTTLE_CUTOFF = new KeyBinding(KeyCode.None);
+        }
+
+        private void Unlock() {
+            if (!lockState) return;
+
+            lockState = false;
+            cameraManager = CameraManager.Instance;
+            cameraManager.enabled = true;
+            InputLockManager.RemoveControlLock("KSPInputLock");
+
+            if (rememberThrottleCutoffKey != null)
+                GameSettings.THROTTLE_CUTOFF = rememberThrottleCutoffKey;
         }
 
         public void Start() {
@@ -35,7 +50,17 @@ namespace KSPInputLock {
             lockButton.ToolTip = "Lock ship controls";
             lockButton.TexturePath = "KSPInputLock/Icons/unlocked";
             lockButton.Visibility = new GameScenesVisibility(GameScenes.FLIGHT);
-            lockButton.OnClick += e => toggleState();
+            lockButton.OnClick += e => {
+                if (lockState) {
+                    Unlock();
+                    lockButton.ToolTip = "Lock ship controls";
+                    lockButton.TexturePath = "KSPInputLock/Icons/unlocked";
+                } else {
+                    Lock();
+                    lockButton.ToolTip = "Unlock ship controls";
+                    lockButton.TexturePath = "KSPInputLock/Icons/locked";
+                }
+            };
         }
 
         internal void OnDestroy() {
